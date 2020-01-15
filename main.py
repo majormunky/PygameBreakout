@@ -40,7 +40,7 @@ class Block:
 class Game:
     def __init__(self, engine):
         self.engine = engine
-        self.player_pos = None
+        self.player_rect = None
         self.screen_rect = None
         self.player_width = 50
         self.player_speed = 0.35
@@ -57,7 +57,7 @@ class Game:
 
     def setup(self):
         self.screen_rect = get_screenrect()
-        self.player_pos = [20, self.screen_rect.height - 40]
+        self.player_rect = pygame.Rect(20, self.screen_rect.height - 40, 50, 15)
         self.setup_ball()
         self.setup_blocks()
 
@@ -84,13 +84,13 @@ class Game:
             
     def update(self, dt):
         if self.keys_pressed[pygame.K_LEFT]:
-            self.player_pos[0] -= self.player_speed * dt
-            if self.player_pos[0] < 0:
-                self.player_pos[0] = 0
+            self.player_rect.x -= self.player_speed * dt
+            if self.player_rect.x < 0:
+                self.player_rect.x = 0
         elif self.keys_pressed[pygame.K_RIGHT]:
-            self.player_pos[0] += self.player_speed * dt
-            if self.player_pos[0] + self.player_width > self.screen_rect.width:
-                self.player_pos[0] = self.screen_rect.width - self.player_width
+            self.player_rect.x += self.player_speed * dt
+            if self.player_rect.right > self.screen_rect.width:
+                self.player_rect.right = self.screen_rect.width
 
         if self.state == "playing":
             self.ball_pos[0] += int(self.ball_velocity.x * self.ball_speed)
@@ -120,23 +120,20 @@ class Game:
             if block.rect.collidepoint(self.ball_pos):
                 block.hit()
                 return True
+
         return False
 
 
     def draw(self, canvas):
-        pygame.draw.rect(canvas, (0, 0, 200), (self.player_pos[0], self.player_pos[1], self.player_width, 15))
+        pygame.draw.rect(canvas, (0, 0, 200), self.player_rect)
         pygame.draw.circle(canvas, (0, 200, 0), self.ball_pos, self.ball_radius)
         left_key = text_surface("Left Key: {}".format(self.keys_pressed[pygame.K_LEFT]), color=(255, 255, 255), font_size=24)
         right_key = text_surface("Right Key: {}".format(self.keys_pressed[pygame.K_RIGHT]), color=(255, 255, 255), font_size=24)
         ball_vel = text_surface("Ball Velocity: {}".format(self.ball_velocity), color=(255, 255, 255), font_size=24)
 
         for block in self.blocks:
-            #pygame.draw.rect(canvas, (255, 255, 255), block.rect, 2)
             block.draw(canvas)
 
-        # canvas.blit(left_key, (20, 20))
-        # canvas.blit(right_key, (20, 50))
-        # canvas.blit(ball_vel, (20, 70))
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
