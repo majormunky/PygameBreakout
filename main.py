@@ -58,6 +58,7 @@ class Game:
     def setup(self):
         self.screen_rect = get_screenrect()
         self.player_rect = pygame.Rect(20, self.screen_rect.height - 40, 50, 15)
+        self.player_rect.centerx = self.screen_rect.centerx
         self.setup_ball()
         self.setup_blocks()
 
