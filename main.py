@@ -35,6 +35,8 @@ class Block:
             color = (200, 0, 0)
         elif self.status == "hit_once":
             color = (100, 0, 0)
+        else:
+            color = (100, 100, 100)
         pygame.draw.rect(canvas, color, self.rect, self.border)
 
 class Game:
@@ -106,22 +108,21 @@ class Game:
                 self.ball_pos[1] = 0
                 self.ball_velocity[1] *= -1
             if self.check_collisions():
-                self.ball_velocity[0] *= -1
                 self.ball_velocity[1] *= -1
 
             if self.ball_pos[1] > self.screen_rect.height:
-                # we went offscreen, place new ball
                 self.state = "start"
                 self.setup_ball()
 
 
     def check_collisions(self):
-        print("Checking Collisions", self.ball_pos)
         for block in self.blocks:
             if block.rect.collidepoint(self.ball_pos):
                 block.hit()
                 return True
-
+        if self.player_rect.collidepoint(self.ball_pos):
+            print("Hit Player")
+            return True
         return False
 
 
