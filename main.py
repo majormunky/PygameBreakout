@@ -1,4 +1,5 @@
 import pygame
+import random
 from Engine.Engine import Engine
 from Engine.Config import get_screenrect
 from Engine.Text import text_surface
@@ -47,18 +48,24 @@ class Game:
 
         self.ball_pos = None
         self.ball_radius = 10
-        self.ball_velocity = pygame.math.Vector2(-1, -1)
+        self.ball_velocity = None
         self.ball_speed = 10
 
         self.blocks = []
-
+        self.state = "start"
         self.setup()
 
     def setup(self):
         self.screen_rect = get_screenrect()
         self.player_pos = [20, self.screen_rect.height - 40]
-        self.ball_pos = [self.screen_rect.width // 2, self.screen_rect.height - 80]
+        self.setup_ball()
         self.setup_blocks()
+
+    def setup_ball(self):
+        self.ball_pos = [self.screen_rect.width // 2, self.screen_rect.height - 80]
+        rand_x = random.random()
+        rand_y = random.random()
+        self.ball_velocity = pygame.math.Vector2(-rand_x, -rand_y)
 
     def setup_blocks(self):
         rows = 5
@@ -85,22 +92,30 @@ class Game:
             if self.player_pos[0] + self.player_width > self.screen_rect.width:
                 self.player_pos[0] = self.screen_rect.width - self.player_width
 
-        self.ball_pos[0] += int(self.ball_velocity.x * self.ball_speed)
-        self.ball_pos[1] += int(self.ball_velocity.y * self.ball_speed)
-        if self.ball_pos[0] < 0:
-            self.ball_pos[0] = 1
-            self.ball_velocity[0] *= -1
-        elif self.ball_pos[0] > self.screen_rect.width:
-            self.ball_pos[0] = self.screen_rect.width - 1
-            self.ball_velocity[0] *= -1
-        if self.ball_pos[1] < 0:
-            self.ball_pos[1] = 0
-            self.ball_velocity[1] *= -1
-        if self.check_collisions():
-            self.ball_velocity[0] *= -1
-            self.ball_velocity[1] *= -1
+        if self.state == "playing":
+            self.ball_pos[0] += int(self.ball_velocity.x * self.ball_speed)
+            self.ball_pos[1] += int(self.ball_velocity.y * self.ball_speed)
+            if self.ball_pos[0] < 0:
+                self.ball_pos[0] = 1
+                self.ball_velocity[0] *= -1
+            elif self.ball_pos[0] > self.screen_rect.width:
+                self.ball_pos[0] = self.screen_rect.width - 1
+                self.ball_velocity[0] *= -1
+            if self.ball_pos[1] < 0:
+                self.ball_pos[1] = 0
+                self.ball_velocity[1] *= -1
+            if self.check_collisions():
+                self.ball_velocity[0] *= -1
+                self.ball_velocity[1] *= -1
+
+            if self.ball_pos[1] > self.screen_rect.height:
+                # we went offscreen, place new ball
+                self.state = "start"
+                self.setup_ball()
+
 
     def check_collisions(self):
+        print("Checking Collisions", self.ball_pos)
         for block in self.blocks:
             if block.rect.collidepoint(self.ball_pos):
                 block.hit()
@@ -130,6 +145,9 @@ class Game:
         elif event.type == pygame.KEYUP:
             if event.key in self.keys_pressed.keys():
                 self.keys_pressed[event.key] = False
+            if event.key == pygame.K_SPACE:
+                if self.state == "start":
+                    self.state = "playing"
 
 if __name__ == '__main__':
     e = Engine(Game)
